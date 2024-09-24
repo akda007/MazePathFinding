@@ -62,23 +62,29 @@ class Maze {
         } while (count > 0);
     }
 
-    static public void ExportToText(int[,] grid, string filename, List<GridPoint> path) {
+   public static void ExportToText(int[,] grid, string filename, List<GridPoint> path) {
         (int height, int width) = (grid.GetLength(0), grid.GetLength(1));
         
-        string text = "";
+        using (var fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.None))
+        using (var bufferedStream = new BufferedStream(fileStream))
+        using (var writer = new StreamWriter(bufferedStream)) {
+            // Write grid
 
-        for (int x = 0; x < height; x++) {
-            for (int y = 0; y < width; y++) {
-                text += grid[x, y];
+            for (int x = 0; x < height; x++) {
+                if (x % 100 == 0) {
+                    Console.Write($"\rWriting: {x}/{height} => {x / height * 100f:00.0}%");
+                }
+                for (int y = 0; y < width; y++) {
+                    writer.Write(grid[x, y]);
+                }
+                writer.Write("\n"); // New line after each row
             }
-            text += "\r\n";
-        }
 
-        foreach (var node in path) {
-            text += $"({node.x}, {node.y})\n";
+            // Write path
+            foreach (var node in path) {
+                writer.WriteLine($"({node.x}, {node.y})");
+            }   
         }
-
-        File.WriteAllText(filename, text);
     }
     static public void PrintMaze(int[,] grid) {
         for (int x = 0; x < grid.GetLength(0); x++) {
